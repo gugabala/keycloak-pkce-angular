@@ -53,3 +53,28 @@ ng serve
 Acesse: http://localhost:4200
 
 ## Estrutura do projeto
+
+├── docker/
+│   ├── docker-compose.yml     # Keycloak + PostgreSQL
+│   ├── .env                   # Credenciais padrão (apenas estudo)
+│   └── keycloak/
+│       └── realm-export.json  # Realm pré-configurado com PKCE
+├── angular-app/               # Aplicação Angular
+└── README.md
+
+## Fluxo PKCE
+
+1. Angular gera `code_verifier` e `code_challenge`
+2. Redireciona para o Keycloak com o challenge
+3. Usuário faz login no Keycloak
+4. Keycloak retorna `code` para o Angular
+5. Angular troca `code` + `code_verifier` pelo token JWT
+6. Token usado para acessar páginas protegidas
+
+## Páginas
+
+| Rota | Tipo | Descrição |
+|---|---|---|
+| `/` | Pública | Home sem autenticação |
+| `/dashboard` | Protegida | Exibe usuário e email do token |
+| `/profile` | Protegida | Exibe dados completos do token |
