@@ -1,59 +1,58 @@
-# AngularApp
+# Angular App — Keycloak PKCE
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.12.
+Aplicação Angular 21 para estudo de autenticação OAuth2 com PKCE integrada ao Keycloak.
 
-## Development server
+## Sobre
 
-To start a local development server, run:
+Esta aplicação demonstra o fluxo completo de autenticação **Authorization Code Flow + PKCE**
+sem client secret, usando a biblioteca `angular-oauth2-oidc`.
+
+## Pré-requisitos
+
+- Node.js LTS
+- Angular CLI: `npm install -g @angular/cli`
+- Keycloak rodando via Docker (ver `/docker` na raiz do projeto)
+
+## Como rodar
 
 ```bash
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Acesse: http://localhost:4200
 
-## Code scaffolding
+> ⚠️ O Keycloak precisa estar rodando antes de fazer login.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Páginas
 
-```bash
-ng generate component component-name
-```
+| Rota | Tipo | Descrição |
+|---|---|---|
+| `/` | Pública | Home sem autenticação |
+| `/dashboard` | Protegida | Exibe usuário e email do token |
+| `/profile` | Protegida | Exibe dados completos do token JWT |
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Estrutura relevante
+src/app/
+├── core/auth/
+│   ├── auth.config.ts   # Configuração do Keycloak/PKCE
+│   └── auth.guard.ts    # Proteção de rotas
+├── pages/
+│   ├── home/            # Página pública
+│   ├── dashboard/       # Página protegida
+│   └── profile/         # Página protegida
+├── app.config.ts        # Providers da aplicação
+└── app.routes.ts        # Definição de rotas
 
-```bash
-ng generate --help
-```
+## Fluxo PKCE resumido
 
-## Building
+1. `initCodeFlow()` → gera `code_verifier` + `code_challenge` e redireciona ao Keycloak
+2. Keycloak autentica e retorna `code`
+3. Angular troca `code` + `code_verifier` pelo token JWT
+4. `authGuard` valida o token antes de ativar rotas protegidas
 
-To build the project run:
+## Credenciais de teste
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+| Usuário | Senha |
+|---|---|
+| `user@estudo.com` | `user123` |
