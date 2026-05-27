@@ -1,0 +1,16 @@
+# Angular
+angular-app/node_modules/
+angular-app/.angular/
+angular-app/dist/
+
+# Ambiente
+*.env.local
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
