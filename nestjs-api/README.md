@@ -1,98 +1,81 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS API — Keycloak PKCE
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST com NestJS, TypeORM e SQLite integrada ao Keycloak para validação de tokens JWT via PKCE.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+- **NestJS** — framework backend
+- **TypeORM** — ORM para mapeamento das entidades
+- **better-sqlite3** — banco de dados local para estudo
+- **passport-jwt + jwks-rsa** — validação do token JWT com chave pública do Keycloak
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Pré-requisitos
 
-## Project setup
+- Node.js LTS
+- Keycloak rodando via Docker (ver `/docker` na raiz do projeto)
+
+## Como rodar
 
 ```bash
-$ npm install
+npm install
+npm run start:dev
 ```
 
-## Compile and run the project
+API disponível em: http://localhost:3000
 
-```bash
-# development
-$ npm run start
+> ⚠️ O Keycloak precisa estar rodando antes de iniciar a API.
 
-# watch mode
-$ npm run start:dev
+## Autenticação
 
-# production mode
-$ npm run start:prod
-```
+Todos os endpoints são protegidos por JWT. O token é validado usando a chave pública do Keycloak via JWKS:
+http://localhost:8080/realms/estudo/protocol/openid-connect/certs
 
-## Run tests
+Envie o token no header:
+Authorization: Bearer <access_token>
 
-```bash
-# unit tests
-$ npm run test
+## Endpoints
 
-# e2e tests
-$ npm run test:e2e
+### Employees
+| Método | Rota | Descrição | Regra |
+|---|---|---|---|
+| `POST` | `/employees` | Cria employee | Autenticado |
+| `GET` | `/employees/:id` | Busca employee | Autenticado |
+| `PATCH` | `/employees/:id` | Atualiza employee | Apenas o dono (email do token) |
+| `PATCH` | `/employees/:id/assign-manager` | Atribui manager | Autenticado |
 
-# test coverage
-$ npm run test:cov
-```
+## Entidades
+Employee
+├── id
+├── name
+├── managerId (auto-referência)
+└── contactInfo (OneToOne)
+ContactInfo
+├── id
+├── phone
+└── email
+Meeting
+├── id
+├── topic
+├── zoomUrl
+└── attendees (ManyToMany → Employee)
+Task
+├── id
+├── name
+└── assignee (ManyToOne → Employee)
 
-## Deployment
+## Seed
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Ao subir a aplicação, o seed é executado automaticamente se o banco estiver vazio:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| Dado | Detalhe |
+|---|---|
+| CEO | `ceo@example.com` |
+| Manager | reporta ao CEO |
+| Tasks | 2 tasks atribuídas ao Manager |
+| Meetings | 2 meetings com CEO e Manager |
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## Segurança
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Token validado localmente via chave pública RS256 do Keycloak
+- Sem chamada ao Keycloak a cada request
+- Regra de ownership no `PATCH` — usuário só altera o próprio employee
