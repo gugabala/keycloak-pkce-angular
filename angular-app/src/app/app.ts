@@ -7,7 +7,7 @@ import { authConfig } from './core/auth/auth.config';
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, RouterLink],
-template: `
+  template: `
     <nav>
       <a routerLink="/">Home</a>
       <a routerLink="/dashboard">Dashboard</a>
@@ -25,11 +25,15 @@ template: `
 export class App implements OnInit {
   isLoggedIn = false;
 
-  constructor(private oauthService: OAuthService) {}
+  constructor(private oauthService: OAuthService) { }
 
   ngOnInit(): void {
     this.oauthService.configure(authConfig);
     this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
+      this.isLoggedIn = this.oauthService.hasValidAccessToken();
+    });
+
+    this.oauthService.events.subscribe(() => {
       this.isLoggedIn = this.oauthService.hasValidAccessToken();
     });
   }
